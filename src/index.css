@@ -1,0 +1,8 @@
+.card-body {
+  word-wrap: break-word; /* long words wrap honge */
+  overflow: hidden;       /* container se bahar na jaye */
+  text-overflow: ellipsis; /* optional: extra text ... me dikhaye */
+}
+ul li {
+  word-break: break-word;
+}
