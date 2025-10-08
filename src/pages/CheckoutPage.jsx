@@ -3,15 +3,17 @@ import { useCart } from "../contexts/CartContext";
 import { useAddresses } from "../contexts/AddressContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createOrder } from "../utils/api";
+import { useToast } from "../contexts/ToastContext"; // ✅ Import toast hook
 
 const CheckoutPage = () => {
   const location = useLocation();
-  const buyNowProduct = location.state?.product; // for Buy Now
+  const buyNowProduct = location.state?.product;
   const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
 
   const { cart, addItem, removeItem } = useCart();
   const { addresses, addNewAddress, updateAddress, removeAddress } = useAddresses();
+  const { showToast } = useToast(); // ✅ Toast hook
 
   const [editingAddress, setEditingAddress] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -25,14 +27,19 @@ const CheckoutPage = () => {
 
   // Add new address
   const handleAddAddress = async () => {
-    const added = await addNewAddress(newAddress);
-    setSelectedAddress(added);
-    setNewAddress({ street: "", city: "", state: "", zip: "", country: "" });
+    try {
+      const added = await addNewAddress(newAddress);
+      setSelectedAddress(added);
+      setNewAddress({ street: "", city: "", state: "", zip: "", country: "" });
+      showToast("Address added successfully!", "success"); // ✅
+    } catch {
+      showToast("Failed to add address.", "danger");
+    }
   };
 
   // Place order
   const handlePlaceOrder = async () => {
-    if (!selectedAddress) return alert("Please select an address");
+    if (!selectedAddress) return showToast("Please select an address.", "warning");
 
     const productsToOrder = buyNowProduct
       ? [{ productId: buyNowProduct._id, quantity, size: buyNowProduct.size || null }]
@@ -44,7 +51,9 @@ const CheckoutPage = () => {
 
     const totalAmount = productsToOrder.reduce(
       (sum, item) => {
-        const product = buyNowProduct ? buyNowProduct : cart.find(c => c.productId._id === item.productId).productId;
+        const product = buyNowProduct
+          ? buyNowProduct
+          : cart.find(c => c.productId._id === item.productId).productId;
         return sum + product.price * item.quantity;
       },
       0
@@ -57,18 +66,17 @@ const CheckoutPage = () => {
         addressId: selectedAddress._id,
       });
 
-      // Clear cart items if it’s a cart order
       if (!buyNowProduct) {
         for (let item of cart) {
           await removeItem(item.productId._id);
         }
       }
 
-      alert("Order Placed Successfully!");
+      showToast("Order placed successfully!", "success"); // ✅
       navigate("/orders");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "danger"); // ✅
     }
   };
 
@@ -83,7 +91,7 @@ const CheckoutPage = () => {
     <div className="container my-4">
       <h4 className="mb-4 text-center fw-bold">Checkout</h4>
       <div className="row">
-        {/* Left Column: Buy Now / Cart */}
+        {/* Left Column */}
         <div className="col-lg-6 col-12 mb-4">
           {buyNowProduct && (
             <div className="card mb-3">
@@ -130,7 +138,6 @@ const CheckoutPage = () => {
                     <div className="flex-grow-1 ms-3">
                       <h6 className="fw-bold">{item.productId.name}</h6>
                       {item.size && <p className="text-muted mb-1">Size: {item.size}</p>}
-
                       <div className="d-flex align-items-center gap-2 mt-2">
                         <button
                           className="btn btn-outline-secondary rounded-circle p-0"
@@ -156,7 +163,13 @@ const CheckoutPage = () => {
                           ${(item.productId.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
-                      <button className="btn btn-danger btn-sm mt-2 w-100" onClick={() => removeItem(item.productId._id)}>
+                      <button
+                        className="btn btn-danger btn-sm mt-2 w-100"
+                        onClick={() => {
+                          removeItem(item.productId._id);
+                          showToast("Removed from cart", "warning"); // ✅
+                        }}
+                      >
                         Remove
                       </button>
                     </div>
@@ -172,11 +185,11 @@ const CheckoutPage = () => {
           )}
         </div>
 
-        {/* Right Column: Address Form */}
+        {/* Right Column */}
         <div className="col-lg-6 col-12">
           <div className="mb-3">
             <h6 className="fw-bold">{editingAddress ? "Update Address" : "Add New Address"}</h6>
-            {["street","city","state","zip","country"].map(field => (
+            {["street", "city", "state", "zip", "country"].map(field => (
               <input
                 key={field}
                 type="text"
@@ -190,10 +203,15 @@ const CheckoutPage = () => {
               <button
                 className="btn btn-success flex-grow-1"
                 onClick={async () => {
-                  if (editingAddress) {
-                    await updateAddress(editingAddress._id, newAddress);
-                  } else {
-                    await handleAddAddress();
+                  try {
+                    if (editingAddress) {
+                      await updateAddress(editingAddress._id, newAddress);
+                      showToast("Address updated successfully!", "info"); // ✅
+                    } else {
+                      await handleAddAddress();
+                    }
+                  } catch {
+                    showToast("Failed to save address.", "danger");
                   }
                   setEditingAddress(null);
                   setNewAddress({ street: "", city: "", state: "", zip: "", country: "" });
@@ -244,6 +262,7 @@ const CheckoutPage = () => {
                   if (window.confirm("Are you sure?")) {
                     await removeAddress(addr._id);
                     if (selectedAddress?._id === addr._id) setSelectedAddress(null);
+                    showToast("Address deleted successfully!", "warning"); // ✅
                   }
                 }}
               >

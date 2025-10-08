@@ -87,7 +87,7 @@ export default function Navbar() {
         
          {/* Right Side Items */}
         <div className="d-flex align-items-center ms-auto">
-          <Link className="btn btn-secondary me-3" to="/login">Login</Link>
+          {/* <Link className="btn btn-secondary me-3" to="/login">Login</Link> */}
           <Link to="/wishlist" className="ms-3 text-decoration-none position-relative">
             <i className="bi bi-heart text-secondary fs-5"></i>
             {wishlist.length > 0 && (

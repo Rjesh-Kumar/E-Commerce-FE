@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../contexts/ToastContext";
 import PriceDetailsCard from "../components/PriceDetailsCard";
 
 const CartPage = () => {
+  const { showToast } = useToast();
   const { cart, addItem, removeItem } = useCart();
   const { addItem: addToWishlist, wishlist, removeItem: removeFromWishlist } = useWishlist();
   const [selectedSizes, setSelectedSizes] = useState({});
@@ -15,12 +17,20 @@ const CartPage = () => {
     if (quantity > 1) addItem(productId, -1);
     else removeItem(productId);
   };
-  const handleRemove = (productId) => removeItem(productId);
+  const handleRemove = (productId) => {
+    removeItem(productId);
+    showToast("Removed from cart", "warning");
+  }  
 
   const handleMoveToWishlist = async (item) => {
     const alreadyInWishlist = wishlist.some(p => p._id === item.productId._id);
-    if (alreadyInWishlist) removeFromWishlist(item.productId._id);
-    else await addToWishlist(item.productId._id);
+    if (alreadyInWishlist) {
+      removeFromWishlist(item.productId._id);
+      showToast("Removed from wishlist", "info");
+    } else {
+      await addToWishlist(item.productId._id);
+      showToast("Moved to wishlist", "success");
+    }  
   };
 
   const handleSizeSelect = (productId, size) => {

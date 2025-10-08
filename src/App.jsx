@@ -17,9 +17,11 @@ import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
 import { FilterProvider } from "./contexts/FilterContext";
 import { AddressProvider } from "./contexts/AddressContext";
+import { ToastProvider } from "./contexts/ToastContext";
 
 const App = () => {
   return (
+  <ToastProvider>
     <ProductsProvider>
       <CartProvider>
         <WishlistProvider>
@@ -44,6 +46,7 @@ const App = () => {
         </WishlistProvider>
       </CartProvider>
     </ProductsProvider>
+   </ToastProvider> 
   );
 };
 

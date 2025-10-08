@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { getOrders } from "../utils/api";
+import { useToast } from "../contexts/ToastContext";
 
 const OrderHistoryPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -12,6 +14,7 @@ const OrderHistoryPage = () => {
       setOrders(data);
     } catch (err) {
       console.error("Error fetching orders:", err);
+      showToast("Failed to fetch orders.", "error");
     } finally {
       setLoading(false);
     }
@@ -31,11 +34,11 @@ const OrderHistoryPage = () => {
       await fetch(`http://localhost:5000/api/orders/${orderId}`, {
         method: "DELETE",
       });
-      alert("Order deleted successfully!");
       setOrders(orders.filter((order) => order._id !== orderId));
+      showToast("Order deleted successfully!", "success");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete order.");
+      showToast("Failed to delete order.", "error");
     }
   };
 
@@ -66,15 +69,15 @@ const OrderHistoryPage = () => {
             )}
 
             <h5>Products:</h5>
-            {order.products.map(item => (
-  <div key={item.productId._id} className="d-flex justify-content-between mb-2">
-    <span>
-      {item.productId.name} (x{item.quantity}) {item.size ? `| Size: ${item.size}` : ""}
-    </span>
-    <span>${item.productId.price * item.quantity}</span>
-  </div>
-))}
-
+            {order.products.map((item) => (
+              <div key={item.productId._id} className="d-flex justify-content-between mb-2">
+                <span>
+                  {item.productId.name} (x{item.quantity}){" "}
+                  {item.size ? `| Size: ${item.size}` : ""}
+                </span>
+                <span>${item.productId.price * item.quantity}</span>
+              </div>
+            ))}
           </div>
         </div>
       ))}

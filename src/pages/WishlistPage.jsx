@@ -1,11 +1,13 @@
 import React from "react";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useCart } from "../contexts/CartContext";
+import { useToast } from "../contexts/ToastContext"; // ✅ added
 import Loader from "../components/Loader";
 
 const WishlistPage = () => {
   const { wishlist, removeItem } = useWishlist();
   const { addItem } = useCart();
+  const { showToast } = useToast(); // ✅ added
 
   if (!wishlist) return <Loader />;
 
@@ -16,7 +18,6 @@ const WishlistPage = () => {
       {wishlist.length === 0 ? (
         <p className="text-center">No items in wishlist.</p>
       ) : (
-        // ✅ Restored your desktop spacing, but now responsive
         <div className="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mx-0 mx-md-5">
           {wishlist.map((p) => (
             <div key={p._id} className="col">
@@ -28,7 +29,10 @@ const WishlistPage = () => {
                 <button
                   className="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle"
                   style={{ zIndex: 2 }}
-                  onClick={() => removeItem(p._id)}
+                  onClick={() => {
+                    removeItem(p._id);
+                    showToast("Removed from wishlist", "danger"); // ✅ toast added
+                  }}
                 >
                   <i className="bi bi-heart-fill text-danger"></i>
                 </button>
@@ -49,7 +53,10 @@ const WishlistPage = () => {
                   <p className="fw-bold">${p.price}</p>
                   <button
                     className="btn btn-primary w-100 mt-auto rounded-0"
-                    onClick={() => addItem(p._id)}
+                    onClick={() => {
+                      addItem(p._id);
+                      showToast("Added to cart", "success"); // ✅ toast added
+                    }}
                   >
                     Add to Cart
                   </button>
